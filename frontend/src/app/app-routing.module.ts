@@ -25,14 +25,14 @@ const appRoutes: Routes = [
     canActivate: [AfterLoginService]
   },
   {
-    path: 'request-password-reset',
+    path: 'reset-password',
     component: RequestResetComponent,
-    canActivate: [AfterLoginService]
+    // canActivate: [BeforeLoginService]
   },
   {
     path: 'response-password',
     component: ResponseResetComponent,
-    canActivate: [AfterLoginService]
+    canActivate: [BeforeLoginService]
   },
 ];
 
