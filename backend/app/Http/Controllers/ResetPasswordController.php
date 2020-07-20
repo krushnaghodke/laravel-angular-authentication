@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangePasswordRequest;
 use App\Mail\ResetPasswordMail;
 use App\User;
 use DB;
@@ -64,7 +65,27 @@ class ResetPasswordController extends Controller
         Mail::to($email)->send(new ResetPasswordMail($token->token));
     }
 
-    public function resetPassword(\Illuminate\Http\Request $request){
-        return $request->all();
+    public function resetPassword(ChangePasswordRequest $request)
+    {
+        return $this->getUserToken($request)->count() > 0 ? $this->changePasswordResponse($request) : $this->tokenNotFoundResponse();
+    }
+
+    private function getUserToken(\Illuminate\Http\Request $request)
+    {
+       return DB::table('password_resets')->where(['email' => $request->email, 'token' => $request->resetToken]);
+    }
+
+    private function tokenNotFoundResponse()
+    {
+        return response()->json(['error' => 'Token and email not found'], Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    private function changePasswordResponse(\Illuminate\Http\Request $request)
+    {
+        $user = User::whereEmail($request->email)->first();
+        $user->update(['password' => $request->password]);
+
+        $this->getUserToken($request)->delete();
+        return response()->json(['data' => 'Password changed successfully'], Response::HTTP_OK);
     }
 }
